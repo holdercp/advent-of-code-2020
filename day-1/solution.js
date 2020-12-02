@@ -1,33 +1,63 @@
 "use strict";
 
 const path = require("path");
-const utils = require("../utils");
+const fs = require("fs");
 
-const inputFilePath = path.resolve(__dirname, "./input.json");
-const expenses = utils.readAndParseInputFile(inputFilePath);
+const inputFilePath = path.resolve(__dirname, "./input.txt");
+const expenses = fs
+  .readFileSync(inputFilePath)
+  .toString()
+  .trimEnd()
+  .split("\n")
+  .map((expense) => parseInt(expense, 10))
+  .sort((a, b) => a - b);
 
 const SUM = 2020;
 
-const findAddendsReducer = (
-  addendsAccumulator,
-  currentAddend,
-  currentIndex,
-  sourceArray
-) => {
-  if (addendsAccumulator.length === 2) {
-    return addendsAccumulator;
+const sumReducer = (sum, num) => sum + num;
+const multiplyReducer = (product, num) => product * num;
+
+function findAddends(sum, addends, numOfAddends, prevAddends = []) {
+  if (addends.length === 0) {
+    return addends;
   }
 
-  const foundAddend = sourceArray.find(
-    (addend, index) => currentIndex !== index && addend + currentAddend === SUM
-  );
+  const [currentAddend, ...remainingAddends] = addends;
+  const prevAddendsSum = prevAddends.reduce(sumReducer, 0);
 
-  return foundAddend ? [currentAddend, foundAddend] : [];
-};
+  for (let i = 0; i < remainingAddends.length; i += 1) {
+    if (numOfAddends > 2) {
+      const recursiveAddends = findAddends(
+        sum,
+        remainingAddends,
+        numOfAddends - 1,
+        [...prevAddends, currentAddend]
+      );
+      if (recursiveAddends.length > 0) {
+        return recursiveAddends;
+      }
+      break;
+    }
 
-function getSolution() {
-  const addendTuple = expenses.reduce(findAddendsReducer, []);
-  return addendTuple[0] * addendTuple[1];
+    const nextAddend = remainingAddends[i];
+    if (prevAddendsSum + currentAddend + nextAddend === sum) {
+      return [...prevAddends, currentAddend, nextAddend];
+    }
+
+    if (prevAddendsSum + currentAddend + nextAddend > sum) {
+      break;
+    }
+  }
+
+  return findAddends(sum, remainingAddends, numOfAddends, prevAddends);
+}
+
+function getSolution(part = "1") {
+  const numOfAddends = part === "2" ? "3" : "2";
+  const addends = findAddends(SUM, expenses, numOfAddends);
+  return addends.length > 0
+    ? addends.reduce(multiplyReducer, 1)
+    : `There is no sum of ${numOfAddends} expenses that equal ${SUM}`;
 }
 
 module.exports = { getSolution };
