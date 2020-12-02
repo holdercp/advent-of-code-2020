@@ -3,9 +3,11 @@
 "use strict";
 
 const day1 = require("../day-1/solution.js");
+const day2 = require("../day-2/solution.js");
 
 const solutionFunctions = {
   day1: day1.getSolution,
+  day2: day2.getSolution,
 };
 
 function logSolution(dayNumber = "1", partNumber = "1") {
