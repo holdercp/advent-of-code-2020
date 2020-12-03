@@ -51,7 +51,7 @@ function findAddends(sum, addends, numOfAddends, prevAddends = []) {
 }
 
 function getSolution(part = "1") {
-  const numOfAddends = part === "2" ? "3" : "2";
+  const numOfAddends = part === "2" ? 3 : 2;
   const addends = findAddends(SUM, expenses, numOfAddends);
   return addends.length > 0
     ? addends.reduce(multiplyReducer, 1)
