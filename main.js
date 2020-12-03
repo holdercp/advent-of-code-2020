@@ -1,6 +1,6 @@
 "use strict";
 
-const { logSolution } = require("./utils/logSolution.js");
+const { logSolution } = require("./helpers/logSolution.js");
 
 const dayNumber = process.argv[2];
 const partNumber = process.argv[3];

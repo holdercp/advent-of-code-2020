@@ -3,7 +3,7 @@
 const path = require("path");
 const {
   readAndTransformInputFile,
-} = require("../utils/readAndTransformInputFile");
+} = require("../helpers/readAndTransformInputFile");
 
 const inputFilePath = path.resolve(__dirname, "./input.txt");
 const map = readAndTransformInputFile(inputFilePath);

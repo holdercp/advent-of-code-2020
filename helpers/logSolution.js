@@ -1,14 +1,6 @@
 "use strict";
 
-const day1 = require("../day-1/solution.js");
-const day2 = require("../day-2/solution.js");
-const day3 = require("../day-3/solution.js");
-
-const solutionFunctions = {
-  day1: day1.getSolution,
-  day2: day2.getSolution,
-  day3: day3.getSolution,
-};
+const solutionFunctions = require("./solutionFunctions");
 
 function logSolution(dayNumber = "1", partNumber = "1") {
   const getSolution = solutionFunctions[`day${dayNumber}`];
