@@ -1,14 +1,12 @@
 "use strict";
 
 const path = require("path");
-const fs = require("fs");
+const {
+  readAndTransformInputFile,
+} = require("../utils/readAndTransformInputFile");
 
 const inputFilePath = path.resolve(__dirname, "./input.txt");
-const expenses = fs
-  .readFileSync(inputFilePath)
-  .toString()
-  .trimEnd()
-  .split("\n")
+const expenses = readAndTransformInputFile(inputFilePath)
   .map((expense) => parseInt(expense, 10))
   .sort((a, b) => a - b);
 

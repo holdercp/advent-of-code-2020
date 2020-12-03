@@ -1,7 +1,9 @@
 "use strict";
 
 const path = require("path");
-const fs = require("fs");
+const {
+  readAndTransformInputFile,
+} = require("../utils/readAndTransformInputFile");
 
 const inputFilePath = path.resolve(__dirname, "./input.txt");
 
@@ -20,12 +22,9 @@ const parsePasswordData = (passwordDataString) => {
   };
 };
 
-const passwordMap = fs
-  .readFileSync(inputFilePath)
-  .toString()
-  .trimEnd()
-  .split("\n")
-  .map(parsePasswordData);
+const passwordMap = readAndTransformInputFile(inputFilePath).map(
+  parsePasswordData
+);
 
 const validPasswordCountFilter = (passwordMapping) => {
   const { indexes: countRange, validCharacter, password } = passwordMapping;
