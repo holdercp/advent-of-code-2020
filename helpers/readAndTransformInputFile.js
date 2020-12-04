@@ -2,8 +2,8 @@
 
 const fs = require("fs");
 
-function readAndTransformInputFile(inputFilePath) {
-  return fs.readFileSync(inputFilePath).toString().trimEnd().split("\n");
+function readAndTransformInputFile(inputFilePath, splitOn = "\n") {
+  return fs.readFileSync(inputFilePath).toString().trimEnd().split(splitOn);
 }
 
 module.exports = { readAndTransformInputFile };
