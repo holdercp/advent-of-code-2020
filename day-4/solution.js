@@ -22,37 +22,29 @@ const passportData = readAndTransformInputFile(
 const isIntegerInRange = (int = 0, min = 0, max = 0) =>
   int >= min && int <= max;
 
+const validateYear = (year, min, max) => {
+  const yearInt = parseInt(year, 10);
+  if (Number.isNaN(yearInt)) {
+    return false;
+  }
+
+  return isIntegerInRange(yearInt, min, max);
+};
+
 const hasRequiredFields = (passport) => {
   const requiredFields = ["hgt", "hcl", "pid", "ecl", "eyr", "iyr", "byr"];
   return requiredFields.every((field) => Object.keys(passport).includes(field));
 };
 
-const hasValidBirthYear = ({ byr }) => {
-  const byrAsInt = parseInt(byr, 10);
-  if (!byr || Number.isNaN(byrAsInt)) {
-    return false;
-  }
-
-  return isIntegerInRange(byrAsInt, 1920, 2002);
-};
-
-const hasValidIssueYear = ({ iyr }) => {
-  const iyrAsInt = parseInt(iyr, 10);
-  if (!iyr || Number.isNaN(iyrAsInt)) {
-    return false;
-  }
-  return isIntegerInRange(iyrAsInt, 2010, 2020);
-};
-
-const hasValidExpirationYear = ({ eyr }) => {
-  const eyrAsInt = parseInt(eyr, 10);
-  if (!eyr || Number.isNaN(eyrAsInt)) {
-    return false;
-  }
-  return isIntegerInRange(eyrAsInt, 2020, 2030);
-};
+const hasValidBirthYear = ({ byr }) => validateYear(byr, 1920, 2002);
+const hasValidIssueYear = ({ iyr }) => validateYear(iyr, 2010, 2020);
+const hasValidExpirationYear = ({ eyr }) => validateYear(eyr, 2020, 2030);
 
 const hasValidHeight = ({ hgt }) => {
+  if (!hgt) {
+    return false;
+  }
+
   const unit = hgt.slice(-2);
   const digit = parseInt(hgt.slice(0, hgt.length - 2), 10);
 
@@ -69,12 +61,16 @@ const hasValidHeight = ({ hgt }) => {
 const hasValidHairColor = ({ hcl }) => /^#[0-9a-f]{6}$/.test(hcl);
 
 const hasValidEyeColor = ({ ecl }) => {
+  if (!ecl) {
+    return false;
+  }
+
   const validColors = ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"];
   return validColors.includes(ecl);
 };
 
 const hasValidPassportId = ({ pid }) =>
-  pid.length === 9 && !Number.isNaN(parseInt(pid, 10));
+  pid && pid.length === 9 && !Number.isNaN(parseInt(pid, 10));
 
 const hasRequiredFieldsFilter = (passport) => hasRequiredFields(passport);
 
