@@ -42,10 +42,12 @@ const validPasswordPositionFilter = (passwordMapping) => {
   );
 };
 
-function getSolution(part = "1") {
-  const filterFunction =
-    part === "2" ? validPasswordPositionFilter : validPasswordCountFilter;
-  return passwordMap.filter(filterFunction).length;
+function part1() {
+  return passwordMap.filter(validPasswordCountFilter).length;
 }
 
-module.exports = { getSolution };
+function part2() {
+  return passwordMap.filter(validPasswordPositionFilter).length;
+}
+
+module.exports = { part1, part2 };

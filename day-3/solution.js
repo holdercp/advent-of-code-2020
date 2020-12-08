@@ -36,19 +36,19 @@ const hitTreesProductReducer = (product, slope) => {
   return product * treesHit;
 };
 
-function getSolution(part = "1") {
-  if (part === "2") {
-    const slopes = [
-      [1, 1],
-      [3, 1],
-      [5, 1],
-      [7, 1],
-      [1, 2],
-    ];
-    return slopes.reduce(hitTreesProductReducer, 1);
-  }
-
+function part1() {
   return countTreesOnSlope(3, 1);
 }
 
-module.exports = { getSolution };
+function part2() {
+  const slopes = [
+    [1, 1],
+    [3, 1],
+    [5, 1],
+    [7, 1],
+    [1, 2],
+  ];
+  return slopes.reduce(hitTreesProductReducer, 1);
+}
+
+module.exports = { part1, part2 };

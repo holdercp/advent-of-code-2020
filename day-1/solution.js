@@ -50,12 +50,20 @@ function findAddends(sum, addends, numOfAddends, prevAddends = []) {
   return findAddends(sum, remainingAddends, numOfAddends, prevAddends);
 }
 
-function getSolution(part = "1") {
-  const numOfAddends = part === "2" ? 3 : 2;
+function part1() {
+  const numOfAddends = 2;
   const addends = findAddends(SUM, expenses, numOfAddends);
   return addends.length > 0
     ? addends.reduce(multiplyReducer, 1)
     : `There is no sum of ${numOfAddends} expenses that equal ${SUM}`;
 }
 
-module.exports = { getSolution };
+function part2() {
+  const numOfAddends = 3;
+  const addends = findAddends(SUM, expenses, numOfAddends);
+  return addends.length > 0
+    ? addends.reduce(multiplyReducer, 1)
+    : `There is no sum of ${numOfAddends} expenses that equal ${SUM}`;
+}
+
+module.exports = { part1, part2 };

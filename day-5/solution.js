@@ -51,23 +51,23 @@ const findAdjacentSeatIds = (id, index, arr) => {
   return false;
 };
 
-function getSolution(part = "1") {
-  if (part === "2") {
-    const sortedIds = passes.map(getSeatId).sort((a, b) => a - b);
-    const adjacentIds = sortedIds.filter(findAdjacentSeatIds);
-
-    if (adjacentIds.length > 2) {
-      return "There are too many open seats to reliably determine yours.";
-    }
-
-    if (adjacentIds.length < 2) {
-      return "There are too few open seats to reliably determine yours.";
-    }
-
-    return adjacentIds[0] + 1;
-  }
-
+function part1() {
   return passes.map(getSeatId).sort((a, b) => b - a)[0];
 }
 
-module.exports = { getSolution };
+function part2() {
+  const sortedIds = passes.map(getSeatId).sort((a, b) => a - b);
+  const adjacentIds = sortedIds.filter(findAdjacentSeatIds);
+
+  if (adjacentIds.length > 2) {
+    return "There are too many open seats to reliably determine yours.";
+  }
+
+  if (adjacentIds.length < 2) {
+    return "There are too few open seats to reliably determine yours.";
+  }
+
+  return adjacentIds[0] + 1;
+}
+
+module.exports = { part1, part2 };

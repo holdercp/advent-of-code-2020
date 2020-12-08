@@ -41,9 +41,12 @@ const sameAnswersSum = (sum, group) => {
   return sum + numOfSameAnswers;
 };
 
-function getSolution(part = "1") {
-  const reducer = part === "2" ? sameAnswersSum : uniqueAnswersSum;
-  return groups.reduce(reducer, 0);
+function part1() {
+  return groups.reduce(uniqueAnswersSum, 0);
 }
 
-module.exports = { getSolution };
+function part2() {
+  return groups.reduce(sameAnswersSum, 0);
+}
+
+module.exports = { part1, part2 };

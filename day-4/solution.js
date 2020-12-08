@@ -87,9 +87,12 @@ const isValidFilter = (passport) => {
   );
 };
 
-function getSolution(part = "1") {
-  const filterFunction = part === "2" ? isValidFilter : hasRequiredFieldsFilter;
-  return passportData.filter(filterFunction).length;
+function part1() {
+  return passportData.filter(hasRequiredFieldsFilter).length;
 }
 
-module.exports = { getSolution };
+function part2() {
+  return passportData.filter(isValidFilter).length;
+}
+
+module.exports = { part1, part2 };
