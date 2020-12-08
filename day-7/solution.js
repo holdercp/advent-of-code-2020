@@ -68,12 +68,12 @@ const getInnerBagCount = (color) => {
   }, 0);
 };
 
-function getSolution(part = "1") {
-  if (part === "2") {
-    return getInnerBagCount("shinyGold");
-  }
-
+function part1() {
   return Object.keys(bagRules).filter(searchBagFilter).length;
 }
 
-module.exports = { getSolution };
+function part2() {
+  return getInnerBagCount("shinyGold");
+}
+
+module.exports = { part1, part2 };
