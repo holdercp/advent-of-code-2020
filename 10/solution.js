@@ -10,7 +10,7 @@ let adapters = readAndTransformInputFile(inputFilePath)
   .map(Number)
   .sort((a, b) => a - b);
 // Add the outlet and device to the chain
-adapters = [0, ...adapters, adapters[adapters.length - 1] + 3];
+adapters = [0, ...adapters, adapters[Math.max(...adapters.keys())] + 3];
 
 const adapterChainReducer = (adapterChainCounts, currentAdapter) => {
   const adapterChainCountReducer = (adapterChainCount, nextAdaptor) =>
@@ -20,13 +20,12 @@ const adapterChainReducer = (adapterChainCounts, currentAdapter) => {
         (adapterChainCounts[currentAdapter] || 1),
     });
 
-  const nextAdaptors = adapters.filter(
-    (adapterOption) =>
-      adapterOption !== currentAdapter &&
-      adapterOption <= currentAdapter + 3 &&
-      adapterOption > currentAdapter
-  );
+  const validAdapterFilter = (adapterOption) =>
+    adapterOption !== currentAdapter &&
+    adapterOption <= currentAdapter + 3 &&
+    adapterOption > currentAdapter;
 
+  const nextAdaptors = adapters.filter(validAdapterFilter);
   const updatedChainCounts = nextAdaptors.reduce(adapterChainCountReducer, {});
 
   return Object.assign({}, adapterChainCounts, updatedChainCounts);
@@ -47,7 +46,7 @@ function part1() {
 
 function part2() {
   return adapters.reduce(adapterChainReducer, { 0: 1 })[
-    adapters[adapters.length - 1]
+    adapters[Math.max(...adapters.keys())]
   ];
 }
 
