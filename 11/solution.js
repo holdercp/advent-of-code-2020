@@ -16,60 +16,75 @@ const SEAT_MAP = {
   floor: ".",
 };
 
-function getAdjacentSeatsCount(seatCoordinates, grid) {
-  const [row, col] = seatCoordinates;
-  const firstRow = 0;
-  const firstCol = 0;
-  const lastRow = grid.length - 1;
-  const lastCol = grid[row].length - 1;
-  const positions = {
-    upLeft: null,
-    up: null,
-    upRight: null,
-    left: null,
-    right: null,
-    downLeft: null,
-    down: null,
-    downRight: null,
+const DIRECTION_MAP = {
+  up: [-1, 0],
+  upLeft: [-1, -1],
+  upRight: [-1, 1],
+
+  left: [0, -1],
+  right: [0, 1],
+
+  down: [1, 0],
+  downLeft: [1, -1],
+  downRight: [1, 1],
+};
+
+const PART_GLOBALS = {
+  threshold: 4,
+  search: "adjacent",
+};
+
+const isOutOfBounds = ([row, col], grid) =>
+  row === -1 || col === -1 || row === grid.length || col === grid[0].length;
+
+const applyDirection = (coordinates, direction) =>
+  coordinates.map((coordinate, index) => coordinate + direction[index]);
+
+function findSeat(coordinates, grid, direction, search = "adjacent") {
+  const searchCoordinates = applyDirection(coordinates, direction);
+  if (isOutOfBounds(searchCoordinates, grid)) {
+    return null;
+  }
+
+  const [rowSearch, colSearch] = searchCoordinates;
+  const seatState = grid[rowSearch][colSearch];
+
+  if (search === "visible") {
+    return seatState === SEAT_MAP.empty || seatState === SEAT_MAP.occupied
+      ? seatState
+      : findSeat(searchCoordinates, grid, direction, search);
+  }
+
+  return seatState;
+}
+
+const findVisibleSeat = (coordinates, grid, direction) =>
+  findSeat(coordinates, grid, direction, "visible");
+const findAdjacentSeat = (coordinates, grid, direction) =>
+  findSeat(coordinates, grid, direction);
+
+function getSeatsCount(seatCoordinates, grid, search = "adjacent") {
+  const searchDirections = (searchType) => (
+    seats,
+    [directionName, directionValues]
+  ) => {
+    const seat =
+      searchType === "visible"
+        ? findVisibleSeat(seatCoordinates, grid, directionValues)
+        : findAdjacentSeat(seatCoordinates, grid, directionValues);
+    return Object.assign({}, seats, { [directionName]: seat });
   };
 
-  if (row > firstRow) {
-    positions.up = grid[row - 1][col];
+  const seats = Object.entries(DIRECTION_MAP).reduce(
+    searchDirections(search),
+    {}
+  );
 
-    if (col > firstCol) {
-      positions.upLeft = grid[row - 1][col - 1];
-    }
-
-    if (col < lastCol) {
-      positions.upRight = grid[row - 1][col + 1];
-    }
-  }
-
-  if (row < lastRow) {
-    positions.down = grid[row + 1][col];
-
-    if (col > firstCol) {
-      positions.downLeft = grid[row + 1][col - 1];
-    }
-
-    if (col < lastCol) {
-      positions.downRight = grid[row + 1][col + 1];
-    }
-  }
-
-  if (col > firstCol) {
-    positions.left = grid[row][col - 1];
-  }
-
-  if (col < lastCol) {
-    positions.right = grid[row][col + 1];
-  }
-
-  const positionStates = Object.values(positions);
-  const occupied = positionStates.filter(
+  const seatStates = Object.values(seats);
+  const occupied = seatStates.filter(
     (position) => position === SEAT_MAP.occupied
   ).length;
-  const empty = positionStates.filter((position) => position === SEAT_MAP.empty)
+  const empty = seatStates.filter((position) => position === SEAT_MAP.empty)
     .length;
 
   return { occupied, empty };
@@ -79,20 +94,24 @@ function transformSeat(seatCoordinates, grid) {
   const [row, col] = seatCoordinates;
   const seat = grid[row][col];
 
-  // If a seat is empty (L) and there are no occupied seats adjacent to it, the seat becomes occupied.
-  // If a seat is occupied (#) and four or more seats adjacent to it are also occupied, the seat becomes empty.
-  // Otherwise, the seat's state does not change.
-
   if (seat === SEAT_MAP.empty) {
-    const { occupied } = getAdjacentSeatsCount(seatCoordinates, grid);
+    const { occupied } = getSeatsCount(
+      seatCoordinates,
+      grid,
+      PART_GLOBALS.search
+    );
     if (occupied === 0) {
       return SEAT_MAP.occupied;
     }
   }
 
   if (seat === SEAT_MAP.occupied) {
-    const { occupied } = getAdjacentSeatsCount(seatCoordinates, grid);
-    if (occupied >= 4) {
+    const { occupied } = getSeatsCount(
+      seatCoordinates,
+      grid,
+      PART_GLOBALS.search
+    );
+    if (occupied >= PART_GLOBALS.threshold) {
       return SEAT_MAP.empty;
     }
   }
@@ -100,43 +119,49 @@ function transformSeat(seatCoordinates, grid) {
   return seat;
 }
 
-function transform(layout) {
-  let seatsChanged;
-  let transformedLayout = layout.map((row) => row.map((col) => col));
+function transform(grid) {
+  let seatsChanged = true;
+  let transformedGrid = grid.map((row) => row.map((col) => col));
 
-  while (seatsChanged !== 0) {
-    seatsChanged = 0;
-    let layoutCopy = transformedLayout.map((row) => row.map((col) => col));
-    for (let row = 0; row < layout.length; row += 1) {
-      const currentRow = layoutCopy[row];
+  while (seatsChanged) {
+    seatsChanged = false;
+    let gridCopy = [...transformedGrid];
+    transformedGrid = gridCopy.map(() => []);
+    for (let row = 0; row < grid.length; row += 1) {
+      const currentRow = gridCopy[row];
 
       for (let col = 0; col < currentRow.length; col += 1) {
-        const currentSeat = layoutCopy[row][col];
-        const transformedSeat = transformSeat([row, col], layoutCopy);
+        const currentSeat = gridCopy[row][col];
+        const transformedSeat = transformSeat([row, col], gridCopy);
 
-        transformedLayout[row][col] = transformedSeat;
+        transformedGrid[row][col] = transformedSeat;
 
-        if (currentSeat !== transformedSeat) {
-          seatsChanged += 1;
+        if (currentSeat !== transformedSeat && !seatsChanged) {
+          seatsChanged = true;
         }
       }
     }
   }
 
-  let occupiedCount = 0;
-  transformedLayout.forEach((row) => {
-    occupiedCount += row.filter((seat) => seat === SEAT_MAP.occupied).length;
-  });
-
-  return occupiedCount;
+  return transformedGrid;
 }
 
 function part1() {
-  return transform(layout);
+  const transformedLayout = transform(layout);
+  return transformedLayout.reduce(
+    (sum, row) => sum + row.filter((seat) => seat === SEAT_MAP.occupied).length,
+    0
+  );
 }
 
 function part2() {
-  return "NOT_IMPLEMENTED";
+  PART_GLOBALS.search = "visible";
+  PART_GLOBALS.threshold = 5;
+  const transformedLayout = transform(layout);
+  return transformedLayout.reduce(
+    (sum, row) => sum + row.filter((seat) => seat === SEAT_MAP.occupied).length,
+    0
+  );
 }
 
 module.exports = { part1, part2 };
