@@ -6,74 +6,44 @@ const {
 } = require("../helpers/readAndTransformInputFile");
 
 const inputFilePath = path.resolve(__dirname, "./input.txt");
-const numbers = readAndTransformInputFile(inputFilePath, ",");
+const startingNumbers = readAndTransformInputFile(inputFilePath, ",").map(
+  Number
+);
 
-function part1() {
-  let game = {};
-  let prevNumber = 0;
+function play(rounds) {
+  const startingLength = startingNumbers.length;
+  const pastNumbers = new Map();
 
-  for (let i = 1; i <= 2020; i += 1) {
-    if (i <= numbers.length) {
-      const number = numbers[i - 1];
-      game = Object.assign({}, game, {
-        [number]: { prevRound: null, recentRound: i, count: 1 },
-      });
-      prevNumber = number;
+  let lastSpoken = 0;
+
+  startingNumbers.forEach((number, index) => {
+    pastNumbers.set(number, index + 1);
+  });
+
+  for (let round = startingLength + 2; round <= rounds; round += 1) {
+    const prevRound = round - 1;
+
+    if (pastNumbers.has(lastSpoken)) {
+      const age = prevRound - pastNumbers.get(lastSpoken);
+      pastNumbers.set(lastSpoken, prevRound);
+      lastSpoken = age;
     } else {
-      const { prevRound, recentRound, count } = game[prevNumber];
-
-      if (count > 1) {
-        const age = recentRound - prevRound;
-        game = Object.assign(
-          {},
-          game,
-          game[age]
-            ? {
-                [age]: {
-                  prevRound: game[age].recentRound,
-                  recentRound: i,
-                  count: game[age].count + 1,
-                },
-              }
-            : {
-                [age]: {
-                  prevRound: null,
-                  recentRound: i,
-                  count: 1,
-                },
-              }
-        );
-        prevNumber = age;
-      } else {
-        game = Object.assign(
-          {},
-          game,
-          game["0"]
-            ? {
-                ["0"]: {
-                  prevRound: game["0"].recentRound,
-                  recentRound: i,
-                  count: game["0"].count + 1,
-                },
-              }
-            : {
-                ["0"]: {
-                  prevRound: null,
-                  recentRound: i,
-                  count: 1,
-                },
-              }
-        );
-        prevNumber = "0";
+      if (lastSpoken !== 0) {
+        pastNumbers.set(lastSpoken, prevRound);
       }
+      lastSpoken = 0;
     }
   }
 
-  return prevNumber;
+  return lastSpoken;
+}
+
+function part1() {
+  return play(2020);
 }
 
 function part2() {
-  return "NOT_IMPLEMENTED";
+  return play(30000000);
 }
 
 module.exports = { part1, part2 };
