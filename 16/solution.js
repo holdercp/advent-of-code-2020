@@ -37,21 +37,21 @@ const rulesReducer = (rules, rule) => {
 const ticketErrorRateReducer = (errorRate, invalidValue) =>
   errorRate + invalidValue;
 
+// Data Parsing
+const rules = rulesRaw.split("\n").reduce(rulesReducer, new Map());
+const ownTicket = ownTicketRaw.split("\n").slice(1).map(parseValues).flat();
+const nearbyTickets = nearbyTicketsRaw.split("\n").slice(1).map(parseValues);
+
 // Filters
 const invalidValueFilter = (value) =>
   ![...rules.values()].flat().some((range) => inRange(value, range));
 const validTicketFilter = (ticket) =>
   ticket.filter(invalidValueFilter).length === 0;
 
-// Data Parsing
-const rules = rulesRaw.split("\n").reduce(rulesReducer, new Map());
-const ownTicket = ownTicketRaw.split("\n").slice(1).map(parseValues).flat();
-const nearbyTickets = nearbyTicketsRaw.split("\n").slice(1).map(parseValues);
-
-function getPositionsMap(fields, rules) {
+function getPositionsMap(fields, rulesMap) {
   const positions = new Map();
   fields.forEach((values, position) => {
-    for (let [name, ranges] of rules) {
+    rulesMap.forEach((ranges, name) => {
       if (
         values.every((value) => ranges.some((range) => inRange(value, range)))
       ) {
@@ -61,7 +61,7 @@ function getPositionsMap(fields, rules) {
           positions.set(position, [name]);
         }
       }
-    }
+    });
   });
 
   return positions;
@@ -72,19 +72,19 @@ function getFieldNameMap(positions) {
 
   while (positions.size) {
     const correctFieldMapping = [...positions.entries()].filter(
-      ([position, names]) => names.length === 1
+      ([, names]) => names.length === 1
     );
 
     const [correctPosition, correctName] = correctFieldMapping.flat(2);
     validMapping.set(correctName, correctPosition);
     positions.delete(correctPosition);
 
-    for (let [position, names] of positions) {
+    positions.forEach((names, position) => {
       positions.set(
         position,
         names.filter((name) => name !== correctName)
       );
-    }
+    });
   }
 
   return validMapping;
@@ -108,8 +108,8 @@ function part2() {
   const fieldNameMap = getFieldNameMap(positionsMap);
 
   const departureFieldPositions = [...fieldNameMap.entries()]
-    .filter(([name, position]) => name.includes("departure"))
-    .map(([name, position]) => position);
+    .filter(([name]) => name.includes("departure"))
+    .map(([, position]) => position);
 
   return departureFieldPositions.reduce(
     (product, position) => product * ownTicket[position],
