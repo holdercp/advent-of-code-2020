@@ -2,9 +2,6 @@
 
 class Cube {
   constructor([x = 0, y = 0, z = 0, w]) {
-    if (Number.isNaN(y)) {
-      console.log();
-    }
     this.x = x;
     this.y = y;
     this.z = z;
@@ -14,7 +11,7 @@ class Cube {
   }
 
   get id() {
-    return this.w
+    return this.w !== undefined
       ? `${this.x}.${this.y}.${this.z}.${this.w}`
       : `${this.x}.${this.y}.${this.z}`;
   }
