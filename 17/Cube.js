@@ -6,22 +6,12 @@ class Cube {
     this.y = y;
     this.z = z;
     this.w = w;
-
-    this.activeNeighborCount = 0;
   }
 
   get id() {
     return this.w !== undefined
       ? `${this.x}.${this.y}.${this.z}.${this.w}`
       : `${this.x}.${this.y}.${this.z}`;
-  }
-
-  incrementActiveNeighborCount() {
-    this.activeNeighborCount += 1;
-  }
-
-  resetActiveNeighborCount() {
-    this.activeNeighborCount = 0;
   }
 }
 
