@@ -4,61 +4,108 @@ const path = require("path");
 const {
   readAndTransformInputFile,
 } = require("../helpers/readAndTransformInputFile");
+const Tile = require("./Tile");
 
 const inputFilePath = path.resolve(__dirname, "./input.txt");
 
-const getDirections = (line) => {
-  let directions = [];
+const getInstructions = (line) => {
+  let instructions = [];
   for (let i = 0; i < line.length; i += 1) {
     const char = line[i];
     const nextChar = line[i + 1];
 
     if (char === "e" || char === "w") {
-      directions.push(char);
+      instructions.push(char);
     } else {
-      directions.push(`${char}${nextChar}`);
+      instructions.push(`${char}${nextChar}`);
       i += 1;
     }
   }
-  return directions;
+  return instructions;
 };
 
-const list = readAndTransformInputFile(inputFilePath).map(getDirections);
+const instructionsList = readAndTransformInputFile(inputFilePath).map(
+  getInstructions
+);
 
-const move = (direction, [x, y]) => {
-  if (direction === "e") return [x + 2, y];
-  if (direction === "w") return [x - 2, y];
+const move = (instruction, [x, y]) => {
+  if (instruction === "e") return [x + 2, y];
+  if (instruction === "w") return [x - 2, y];
 
-  if (direction === "ne") return [x + 1, y - 1];
-  if (direction === "nw") return [x - 1, y - 1];
+  if (instruction === "ne") return [x + 1, y - 1];
+  if (instruction === "nw") return [x - 1, y - 1];
 
-  if (direction === "se") return [x + 1, y + 1];
-  if (direction === "sw") return [x - 1, y + 1];
+  if (instruction === "se") return [x + 1, y + 1];
+  if (instruction === "sw") return [x - 1, y + 1];
 
-  throw new Error("Invalid direction passed to move");
+  throw new Error("Invalid instruction passed to move");
 };
 
-const followDirections = (position, direction) => move(direction, position);
+const followInstructions = (position, instruction) =>
+  move(instruction, position);
 
-function part1() {
-  const blackTiles = new Set();
+const idToPosition = (id) => id.split(".").map(Number);
+const shouldFlipWhite = ([, count]) => count === 0 || count > 2;
+const shouldFlipBlack = ([, count]) => count === 2;
+const getId = ([id]) => id;
 
-  list.forEach((directions) => {
-    const position = directions.reduce(followDirections, [0, 0]);
-    const tile = position.join(".");
+const flipTiles = () => {
+  const blackTiles = new Map();
 
-    if (blackTiles.has(tile)) {
-      blackTiles.delete(tile);
+  instructionsList.forEach((instructions) => {
+    const position = instructions.reduce(followInstructions, [0, 0]);
+    const tile = new Tile(position);
+
+    if (blackTiles.has(tile.id)) {
+      blackTiles.delete(tile.id);
     } else {
-      blackTiles.add(tile);
+      blackTiles.set(tile.id, tile);
     }
   });
 
-  return blackTiles.size;
+  return blackTiles;
+};
+
+function part1() {
+  return flipTiles().size;
 }
 
 function part2() {
-  return "NOT_IMPLEMENTED";
+  const blackTiles = flipTiles();
+  const days = 100;
+
+  for (let day = 1; day <= days; day += 1) {
+    const neighbors = { black: {}, white: {} };
+    blackTiles.forEach((tile) => {
+      neighbors.black[tile.id] = 0;
+
+      tile.adjacentPositions.forEach((position) => {
+        const neighbor = new Tile(position);
+        if (blackTiles.has(neighbor.id)) {
+          neighbors.black[tile.id] += 1;
+        } else {
+          neighbors.white[neighbor.id] =
+            (neighbors.white[neighbor.id] || 0) + 1;
+        }
+      });
+    });
+
+    const flipWhiteQueue = Object.entries(neighbors.black)
+      .filter(shouldFlipWhite)
+      .map(getId);
+    const flipBlackQueue = Object.entries(neighbors.white)
+      .filter(shouldFlipBlack)
+      .map(getId);
+
+    flipWhiteQueue.forEach((id) => {
+      blackTiles.delete(id);
+    });
+    flipBlackQueue.forEach((id) => {
+      blackTiles.set(id, new Tile(idToPosition(id)));
+    });
+  }
+
+  return blackTiles.size;
 }
 
 module.exports = { part1, part2 };
