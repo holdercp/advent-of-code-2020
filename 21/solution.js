@@ -1,8 +1,5 @@
-/* eslint-disable no-restricted-syntax */
-
 "use strict";
 
-const { get } = require("https");
 const path = require("path");
 const {
   readAndTransformInputFile,
@@ -10,28 +7,34 @@ const {
 
 function getIntersection(setA, setB) {
   let intersection = new Set();
-  for (let elem of setB) {
+  setB.forEach((elem) => {
     if (setA.has(elem)) {
       intersection.add(elem);
     }
-  }
+  });
   return intersection;
 }
 
 function unite(setA, setB) {
   let union = new Set(setA);
-  for (let elem of setB) {
+  setB.forEach((elem) => {
     union.add(elem);
-  }
+  });
   return union;
 }
 
 function getDifference(setA, setB) {
   let difference = new Set(setA);
-  for (let elem of setB) {
+  setB.forEach((elem) => {
     difference.delete(elem);
-  }
+  });
   return difference;
+}
+
+function sortAlphabetically([a], [b]) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
 }
 
 const inputFilePath = path.resolve(__dirname, "./input.txt");
@@ -56,23 +59,24 @@ const lines = readAndTransformInputFile(inputFilePath).map(splitLines);
 const map = lines.reduce(createMap, new Map());
 
 function part1() {
-  const allIngredientsArray = lines.map(([ingredients]) => ingredients).flat();
-  const allIngredientsSet = new Set(allIngredientsArray);
+  const allIngredients = lines.map(([ingredients]) => ingredients).flat();
+  const allUniqueIngredients = new Set(allIngredients);
 
-  let allergicIngredientsSet = new Set();
-  for (const ingredients of map.values()) {
-    allergicIngredientsSet = unite(allergicIngredientsSet, ingredients);
-  }
+  let allergicIngredients = new Set();
+  map.forEach((ingredients) => {
+    allergicIngredients = unite(allergicIngredients, ingredients);
+  });
 
-  const nonAllergicIngredientsSet = getDifference(
-    allIngredientsSet,
-    allergicIngredientsSet
+  const nonAllergicIngredients = getDifference(
+    allUniqueIngredients,
+    allergicIngredients
   );
-  const nonAllergicIngredientsArray = Array.from(nonAllergicIngredientsSet);
 
-  const total = Array.from(allIngredientsArray).reduce(
+  const total = Array.from(allIngredients).reduce(
     (count, ingredient) =>
-      nonAllergicIngredientsArray.includes(ingredient) ? count + 1 : count,
+      Array.from(nonAllergicIngredients).includes(ingredient)
+        ? count + 1
+        : count,
     0
   );
 
@@ -80,7 +84,26 @@ function part1() {
 }
 
 function part2() {
-  return "NOT_IMPLEMENTED";
+  let matches = new Map();
+  while (map.size) {
+    map.forEach((ingredients, allergen) => {
+      if (ingredients.size === 1) {
+        const ingredient = ingredients.values().next().value;
+        matches.set(allergen, ingredient);
+        map.delete(allergen);
+
+        map.forEach((ingredientCandidates) => {
+          ingredientCandidates.delete(ingredient);
+        });
+      }
+    });
+  }
+
+  const dangerousIngredients = Array.from(matches.entries())
+    .sort(sortAlphabetically)
+    .map(([, ingredient]) => ingredient);
+
+  return dangerousIngredients.join(",");
 }
 
 module.exports = { part1, part2 };
