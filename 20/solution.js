@@ -4,6 +4,7 @@ const path = require("path");
 const {
   readAndTransformInputFile,
 } = require("../helpers/readAndTransformInputFile");
+const Tile = require("./Tile");
 
 const inputFilePath = path.resolve(__dirname, "./input.txt");
 const rawTiles = readAndTransformInputFile(inputFilePath, "\n\n").map((tile) =>
@@ -20,6 +21,14 @@ const tileEdgeReducer = (acc, line, index, source) => {
   return acc;
 };
 
+const tileDataReducer = (acc, line, index, source) => {
+  if (index === 0 || index === source.length - 1) {
+    return acc;
+  }
+
+  return [...acc, line.slice(1, line.length - 1)];
+};
+
 const getTileId = (tile) =>
   tile[0].substring(tile[0].indexOf(" ") + 1, tile.length - 2);
 
@@ -28,10 +37,13 @@ const getTileEdges = (tile) =>
     .slice(1)
     .reduce(tileEdgeReducer, { top: [], right: [], left: [], bottom: [] });
 
+const getTileData = (tile) => tile.slice(1).reduce(tileDataReducer, []);
+
 const createTiles = (tile) => {
   const id = getTileId(tile);
   const edges = getTileEdges(tile);
-  return { id, edges };
+  const data = getTileData(tile);
+  return new Tile(id, edges, data);
 };
 
 const initTileCounts = (acc, tile) => {
