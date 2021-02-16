@@ -46,44 +46,77 @@ const createTiles = (tile) => {
   return new Tile(id, edges, data);
 };
 
-const initTileCounts = (acc, tile) => {
-  acc[tile.id] = 0;
-  return acc;
-};
-
-const flip = (edge) => edge.split("").reverse().join("");
-
-function findCornerTiles(tiles) {
-  const tileCounts = tiles.reduce(initTileCounts, {});
+const arrangeTiles = (tiles) => {
   tiles.forEach((tile) => {
-    Object.values(tile.edges).forEach((edge) => {
-      tiles.forEach((otherTile) => {
-        if (tile.id !== otherTile.id) {
-          Object.values(otherTile.edges).forEach((otherEdge) => {
-            const match = edge === otherEdge;
-            const flipMatch = flip(edge) === otherEdge;
+    const otherTiles = tiles.filter((otherTile) => tile.id !== otherTile.id);
+    Object.entries(tile.edges).forEach(([edge, value]) => {
+      let matchedTileIds = [];
+      otherTiles.forEach((otherTile) => {
+        if (!matchedTileIds.includes(otherTile.id)) {
+          let match = false;
+          let edgesChecked = 0;
+          while (!match && edgesChecked <= 8) {
+            if (otherTile.top === value) {
+              match = true;
+              matchedTileIds.push(otherTile.id);
+            } else {
+              otherTile.rotate();
+              if (edgesChecked === 4) {
+                otherTile.reset();
+                otherTile.flip();
+              }
+              edgesChecked += 1;
+            }
+          }
 
-            if (match) tileCounts[tile.id] += 1;
-            if (flipMatch) tileCounts[tile.id] += 1;
-          });
+          if (match) {
+            tile.neighbors.set(edge, otherTile);
+          } else {
+            otherTile.reset();
+          }
         }
       });
     });
   });
 
-  return Object.entries(tileCounts)
-    .filter(([, value]) => value === 2)
-    .map(([id]) => id);
-}
+  return tiles;
+};
+
+const zipData = (data1, data2) =>
+  data1.map((line, index) => line + data2[index]);
+
+const traverseRight = (tile) => {
+  if (!tile.neighbors.has("right")) {
+    return tile.data;
+  }
+
+  return zipData(tile.data, traverseRight(tile.neighbors.get("right")));
+};
+
+const traverseTiles = (keyTile) => {
+  return traverseRight(keyTile);
+};
 
 function part1() {
   const tiles = rawTiles.map(createTiles);
-  const corners = findCornerTiles(tiles);
-  return corners.reduce((product, corner) => product * Number(corner), 1);
+  arrangeTiles(tiles);
+  const corners = tiles.filter((tile) => tile.neighbors.size === 2);
+  return corners.reduce((product, corner) => product * Number(corner.id), 1);
 }
 
 function part2() {
-  return "NOT_IMPLEMENTED";
+  const tiles = rawTiles.map(createTiles);
+  arrangeTiles(tiles);
+  const keyTile = tiles.find(
+    (tile) =>
+      tile.neighbors.has("right") &&
+      tile.neighbors.has("bottom") &&
+      !tile.neighbors.has("left") &&
+      !tile.neighbors.has("top")
+  );
+
+  const arrangedData = traverseTiles(keyTile);
+  return arrangedData;
 }
 
 module.exports = { part1, part2 };

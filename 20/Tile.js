@@ -8,6 +8,7 @@ class Tile {
     this.rotation = 0;
     this.isFlipped = false;
     this.cache = new Map();
+    this.neighbors = new Map();
 
     const cacheKey = `${this.rotation}:${this.isFlipped}`;
 
@@ -43,6 +44,12 @@ class Tile {
 
   getCachedEdgesAndData() {
     const { edges, data } = this.cache.get(this.cacheKey);
+    this.edges = edges;
+    this.data = data;
+  }
+
+  setEdgesAndData({ edges, data }) {
+    this.cache.set(this.cacheKey, { edges, data });
     this.edges = edges;
     this.data = data;
   }
@@ -100,10 +107,7 @@ class Tile {
     if (this.cache.has(this.cacheKey)) {
       this.getCachedEdgesAndData();
     } else {
-      const { edges, data } = this.rotateEdgesAndData();
-      this.cache.set(this.cacheKey, { edges, data });
-      this.edges = edges;
-      this.data = data;
+      this.setEdgesAndData(this.rotateEdgesAndData());
     }
   }
 
@@ -113,11 +117,14 @@ class Tile {
     if (this.cache.has(this.cacheKey)) {
       this.getCachedEdgesAndData();
     } else {
-      const { edges, data } = this.flipEdgesAndData();
-      this.cache.set(this.cacheKey, { edges, data });
-      this.edges = edges;
-      this.data = data;
+      this.setEdgesAndData(this.flipEdgesAndData());
     }
+  }
+
+  reset() {
+    this.isFlipped = false;
+    this.rotation = 0;
+    this.getCachedEdgesAndData();
   }
 }
 
