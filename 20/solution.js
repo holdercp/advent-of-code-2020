@@ -46,40 +46,158 @@ const createTiles = (tile) => {
   return new Tile(id, edges, data);
 };
 
-const arrangeTiles = (tiles) => {
-  tiles.forEach((tile) => {
-    const otherTiles = tiles.filter((otherTile) => tile.id !== otherTile.id);
-    Object.entries(tile.edges).forEach(([edge, value]) => {
-      let matchedTileIds = [];
-      otherTiles.forEach((otherTile) => {
-        if (!matchedTileIds.includes(otherTile.id)) {
-          let match = false;
-          let edgesChecked = 0;
-          while (!match && edgesChecked <= 8) {
-            if (otherTile.top === value) {
-              match = true;
-              matchedTileIds.push(otherTile.id);
-            } else {
-              otherTile.rotate();
-              if (edgesChecked === 4) {
-                otherTile.reset();
-                otherTile.flip();
-              }
-              edgesChecked += 1;
-            }
+const searchForNeighbors = (tile, candidates, matched, tiles) => {
+  // Search for top match
+  candidates.forEach((candidate) => {
+    if (!matched.includes(candidate.id)) {
+      let match = false;
+      let edgesChecked = 0;
+      while (!match && edgesChecked <= 8) {
+        if (tile.top === candidate.bottom) {
+          match = true;
+          matched.push(candidate.id);
+        } else {
+          candidate.rotate();
+          if (edgesChecked === 4) {
+            candidate.reset();
+            candidate.flip();
           }
-
-          if (match) {
-            tile.neighbors.set(edge, otherTile);
-          } else {
-            otherTile.reset();
-          }
+          edgesChecked += 1;
         }
-      });
-    });
+      }
+
+      if (match) {
+        searchForNeighbors(
+          candidate,
+          candidates.filter((other) => other.id !== candidate.id),
+          matched,
+          tiles
+        );
+      } else {
+        candidate.reset();
+      }
+    }
   });
 
-  return tiles;
+  // Search for right match
+  candidates.forEach((candidate) => {
+    if (!matched.includes(candidate.id)) {
+      let match = false;
+      let edgesChecked = 0;
+      while (!match && edgesChecked <= 8) {
+        if (tile.right === candidate.left) {
+          match = true;
+          matched.push(candidate.id);
+        } else {
+          candidate.rotate();
+          if (edgesChecked === 4) {
+            candidate.reset();
+            candidate.flip();
+          }
+          edgesChecked += 1;
+        }
+      }
+
+      if (match) {
+        searchForNeighbors(
+          candidate,
+          candidates.filter((other) => other.id !== candidate.id),
+          matched,
+          tiles
+        );
+      } else {
+        candidate.reset();
+      }
+    }
+  });
+
+  candidates.forEach((candidate) => {
+    if (!matched.includes(candidate.id)) {
+      let match = false;
+      let edgesChecked = 0;
+      while (!match && edgesChecked <= 8) {
+        if (tile.bottom === candidate.top) {
+          match = true;
+          matched.push(candidate.id);
+        } else {
+          candidate.rotate();
+          if (edgesChecked === 4) {
+            candidate.reset();
+            candidate.flip();
+          }
+          edgesChecked += 1;
+        }
+      }
+
+      if (match) {
+        searchForNeighbors(
+          candidate,
+          candidates.filter((other) => other.id !== candidate.id),
+          matched,
+          tiles
+        );
+      } else {
+        candidate.reset();
+      }
+    }
+  });
+
+  candidates.forEach((candidate) => {
+    if (!matched.includes(candidate.id)) {
+      let match = false;
+      let edgesChecked = 0;
+      while (!match && edgesChecked <= 8) {
+        if (tile.left === candidate.right) {
+          match = true;
+          matched.push(candidate.id);
+        } else {
+          candidate.rotate();
+          if (edgesChecked === 4) {
+            candidate.reset();
+            candidate.flip();
+          }
+          edgesChecked += 1;
+        }
+      }
+
+      if (match) {
+        searchForNeighbors(
+          candidate,
+          candidates.filter((other) => other.id !== candidate.id),
+          matched,
+          tiles
+        );
+      } else {
+        candidate.reset();
+      }
+    }
+  });
+
+  tiles
+    .filter((tile1) => tile1.id !== tile.id)
+    .forEach((otherTile) => {
+      if (Object.values(otherTile.edges).includes(tile.top)) {
+        tile.neighbors.set("top", otherTile);
+      }
+      if (Object.values(otherTile.edges).includes(tile.right)) {
+        tile.neighbors.set("right", otherTile);
+      }
+      if (Object.values(otherTile.edges).includes(tile.bottom)) {
+        tile.neighbors.set("bottom", otherTile);
+      }
+      if (Object.values(otherTile.edges).includes(tile.left)) {
+        tile.neighbors.set("left", otherTile);
+      }
+    });
+};
+
+const arrangeTiles = (tiles) => {
+  const startingTile = tiles[0];
+  const matchedTileIds = [];
+  const otherTiles = tiles.filter(
+    (otherTile) => startingTile.id !== otherTile.id
+  );
+  searchForNeighbors(startingTile, otherTiles, matchedTileIds, tiles);
 };
 
 const zipData = (data1, data2) =>
