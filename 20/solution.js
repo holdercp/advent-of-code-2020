@@ -212,7 +212,16 @@ const traverseRight = (tile) => {
 };
 
 const traverseTiles = (keyTile) => {
-  return traverseRight(keyTile);
+  let currentTile = keyTile;
+  const data = [];
+  while (currentTile) {
+    data.push(...traverseRight(currentTile));
+    currentTile = currentTile.neighbors.has("bottom")
+      ? currentTile.neighbors.get("bottom")
+      : null;
+  }
+
+  return data;
 };
 
 function part1() {
@@ -232,7 +241,6 @@ function part2() {
       !tile.neighbors.has("left") &&
       !tile.neighbors.has("top")
   );
-
   const arrangedData = traverseTiles(keyTile);
   return arrangedData;
 }
