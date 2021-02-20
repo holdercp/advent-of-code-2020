@@ -49,7 +49,19 @@ function part1() {
 }
 
 function part2() {
-  return "NOT_IMPLEMENTED";
+  const rulesMap = new Map(rules.map(createMap));
+  rulesMap.set("8", ["42", "|", "42", "8"]);
+  rulesMap.set("11", ["42", "31", "|", "42", "11", "31"]);
+
+  const matcher = resolve("0", rulesMap);
+  const pattern = new RegExp(matcher, "g");
+
+  const matches = messages.filter((message) => {
+    const match = message.match(pattern);
+    return match && match[0] === message;
+  });
+
+  return matches.length;
 }
 
 module.exports = { part1, part2 };
