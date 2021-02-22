@@ -7,6 +7,7 @@ const {
 
 const inputFilePath = path.resolve(__dirname, "./input.txt");
 const data = readAndTransformInputFile(inputFilePath);
+let PART = 1;
 
 const operations = {
   "+": (num1, num2) => num1 + num2,
@@ -23,8 +24,31 @@ const createExpressionTracker = (index = null, expression = []) => ({
   expression,
 });
 
-const evaluateTokens = (tokens) =>
-  tokens.reduce((expression, token, index, source) => {
+const evaluateTokens = (tokens) => {
+  const tokensCopy = [...tokens];
+  if (PART === 2) {
+    while (tokensCopy.includes("+")) {
+      let mutated = false;
+      tokensCopy.forEach((token, index) => {
+        if (mutated) return;
+        if (token === "+") {
+          const sum = operations["+"](
+            +tokensCopy[index - 1],
+            +tokensCopy[index + 1]
+          );
+          const deleteCount = 3;
+          tokensCopy.splice(index - 1, deleteCount, sum);
+          mutated = true;
+        }
+      });
+    }
+  }
+
+  if (tokensCopy.length === 1) {
+    return tokensCopy[0];
+  }
+
+  return tokensCopy.reduce((expression, token, index, source) => {
     if (isNumber(token)) {
       const tokenInt = +token;
       if (!expression.has("left")) {
@@ -48,6 +72,7 @@ const evaluateTokens = (tokens) =>
 
     return expression;
   }, new Map());
+};
 
 const flattenExpression = (expression) => {
   const tokens = expression.split(" ").join("").split("");
@@ -99,7 +124,8 @@ function part1() {
 }
 
 function part2() {
-  return "NOT_IMPLEMENTED";
+  PART = 2;
+  return data.reduce((sum, expression) => sum + evaluate(expression), 0);
 }
 
 module.exports = { part1, part2 };
