@@ -119,8 +119,75 @@ const evaluate = (expression) => {
   return evaluateTokens(flatExpressionTokens);
 };
 
+// START REFACTOR
+
+const OPERATORS = {
+  add: "+",
+  multiply: "*",
+};
+
+const OPERATIONS = {
+  "+": (a1, a2) => a1 + a2,
+  "*": (f1, f2) => f1 * f2,
+};
+
+const PARENS = {
+  open: "(",
+  close: ")",
+};
+
+const getLastItem = (arr) => arr[arr.length - 1];
+
+const refactoredEvaluate = (expression) => {
+  const tokens = expression.split(" ").join("");
+  const operands = [];
+  const operators = [];
+
+  const executeOperation = () => {
+    const operator = operators.pop();
+    const operand1 = operands.pop();
+    const operand2 = operands.pop();
+    const result = OPERATIONS[operator](operand1, operand2);
+    operands.push(result);
+  };
+
+  const processStacks = () => {
+    let latestOperator = getLastItem(operators);
+    while (latestOperator && latestOperator !== PARENS.open) {
+      executeOperation();
+      latestOperator = getLastItem(operators);
+    }
+  };
+
+  let index = 0;
+  while (index < tokens.length || operators.length > 0) {
+    const token = parseInt(tokens[index], 10) || tokens[index];
+
+    if (Number.isInteger(token)) {
+      operands.push(token);
+    } else if (token === OPERATORS.add || token === OPERATORS.multiply) {
+      processStacks();
+      operators.push(token);
+    } else if (token === PARENS.open) {
+      operators.push(token);
+    } else if (token === PARENS.close) {
+      processStacks();
+      operators.pop();
+    } else {
+      executeOperation();
+    }
+
+    index += 1;
+  }
+
+  return operands.pop();
+};
+
 function part1() {
-  return data.reduce((sum, expression) => sum + evaluate(expression), 0);
+  return data.reduce(
+    (sum, expression) => sum + refactoredEvaluate(expression),
+    0
+  );
 }
 
 function part2() {
