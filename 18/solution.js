@@ -30,7 +30,7 @@ const PRECEDENCE_MAP = {
   [OPERATORS.multiply]: 2,
 };
 
-const isOperation = (token) =>
+const isOperator = (token) =>
   token === OPERATORS.add || token === OPERATORS.multiply;
 
 const getLastItem = (arr) => arr[arr.length - 1];
@@ -67,7 +67,7 @@ const evaluate = (expression) => {
 
     if (Number.isInteger(token)) {
       operands.push(token);
-    } else if (isOperation(token)) {
+    } else if (isOperator(token)) {
       processStacks(token);
       operators.push(token);
     } else if (token === PARENS.open) {
