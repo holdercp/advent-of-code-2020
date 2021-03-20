@@ -25,14 +25,16 @@ const PARENS = {
 
 const PRECEDENCE_MAP = {
   [PARENS.open]: 0,
-  [PARENS.close]: 1,
+  [PARENS.close]: 1, // Makes algorithm much cleaner to increase the weight here
   [OPERATORS.add]: 2,
   [OPERATORS.multiply]: 2,
 };
 
 const isOperation = (token) =>
   token === OPERATORS.add || token === OPERATORS.multiply;
+
 const getLastItem = (arr) => arr[arr.length - 1];
+
 const hasGreaterOrEqualPrecedence = (operator1, operator2) => {
   if (!operator1 || !operator2) return false;
   return PRECEDENCE_MAP[operator1] >= PRECEDENCE_MAP[operator2];
@@ -88,7 +90,7 @@ function part1() {
 }
 
 function part2() {
-  PRECEDENCE_MAP[OPERATORS.add] = 3;
+  PRECEDENCE_MAP[OPERATORS.add] = 3; // Increase the precedence for part 2
   return data.reduce((sum, expression) => sum + evaluate(expression), 0);
 }
 
